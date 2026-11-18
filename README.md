@@ -4,4 +4,4 @@ Runs an automated WCAG 2.2 A/AA accessibility scan (axe-core in headless Chromiu
 
 An automated scan catches only part of the accessibility problems on a page. Results are a starting point for a manual audit, not a statement of conformance.
 
-Usage: edit `stores.txt` (one domain per line) and push, or run the "Scan stores" workflow by hand. Results are uploaded as a workflow artifact.
+Usage: edit `stores.txt` (one domain per line) and push, or run the "Scan stores" workflow by hand. Results are encrypted with the public key in this repo and pushed to the `results` branch.
