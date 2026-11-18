@@ -13,7 +13,22 @@ async function scanOne(browser, site) {
   try {
     const resp = await page.goto('https://' + site + '/', { waitUntil: 'domcontentloaded', timeout: 45000 });
     out.status = resp ? resp.status() : 0;
-    await page.waitForTimeout(6000);
+    await page.waitForLoadState('networkidle', { timeout: 12000 }).catch(() => {});
+    await page.waitForTimeout(4000);
+    // Close pop-ups and banners that cover the page (prefer close, decline or reject over accept).
+    await page.keyboard.press('Escape').catch(() => {});
+    out.closed = await page.evaluate(() => {
+      let n = 0; const want = /^(close|dismiss|no,? thanks?|not now|decline|reject( all)?|x|×|maybe later|continue shopping)$/i;
+      for (const el of document.querySelectorAll('button, [role=button], a')) {
+        const label = ((el.getAttribute('aria-label') || '') + '|' + (el.innerText || '')).trim();
+        const r = el.getBoundingClientRect();
+        if (r.width > 0 && r.height > 0 && label.split('|').some(t => want.test(t.trim()))) { try { el.click(); n++; } catch (e) {} }
+        if (n >= 4) break;
+      }
+      return n;
+    }).catch(() => 0);
+    await page.waitForTimeout(1500);
+    out.textLength = await page.evaluate(() => document.body.innerText.length).catch(() => 0);
     out.title = (await page.title()).slice(0, 80);
     out.url = page.url();
     if (/just a moment|attention required|access denied/i.test(out.title) || out.status >= 400) { out.blocked = true; return out; }
